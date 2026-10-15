@@ -46,7 +46,7 @@ function gdraw(){var cs=["All"].concat(Array.from(new Set(GR.map(function(g){ret
 $("gtabs").innerHTML=cs.length>2?cs.map(function(c){return'<button class="tab" data-c="'+esc(c)+'" aria-pressed="'+(c==gcat)+'">'+esc(c)+'</button>'}).join(""):"";
 var L=GR.filter(function(g){return gcat=="All"||g.cat==gcat});
 $("gempty").hidden=!!L.length;$("gempty").textContent=AS?"No photos or videos yet. Use the box above to add your first ones.":"Photos and videos are coming soon.";
-$("gg").innerHTML=L.map(function(g,i){var u="/_blob/"+g.aid;return'<figure class="gi" style="animation:rise .6s '+i*.06+'s both" data-k="'+g.id+'">'+(g.kind=="video"?'<video src="'+u+'#t=0.1" preload="metadata" muted playsinline></video><span class="pl">Video</span>':'<img src="'+u+'" alt="'+esc(g.title||g.cat)+'" loading="lazy">')+(g.title?'<figcaption class="cap">'+esc(g.title)+'</figcaption>':'')+(AS&&ISA()?'<button class="del" data-k="'+g.id+'" aria-label="Delete">&times;</button>':'')+'</figure>'}).join("")}
+$("gg").innerHTML=L.map(function(g,i){var u="https://glurrlyumcovgtkmwucu.supabase.co/storage/v1/object/public/media/"+g.aid;return'<figure class="gi" style="animation:rise .6s '+i*.06+'s both" data-k="'+g.id+'">'+(g.kind=="video"?'<video src="'+u+'#t=0.1" preload="metadata" muted playsinline></video><span class="pl">Video</span>':'<img src="'+u+'" alt="'+esc(g.title||g.cat)+'" loading="lazy">')+(g.title?'<figcaption class="cap">'+esc(g.title)+'</figcaption>':'')+(AS&&ISA()?'<button class="del" data-k="'+g.id+'" aria-label="Delete">&times;</button>':'')+'</figure>'}).join("")}
 $("gtabs").onclick=function(e){var b=e.target.closest(".tab");if(b){gcat=b.dataset.c;gdraw()}};
 async function gup(files){var ok=["image/jpeg","image/png","image/webp","image/gif","video/mp4","video/webm"],P=$("prog");
 if(!DB){P.textContent="Database is not available. Reload the page and try again.";return}
@@ -68,8 +68,8 @@ addEventListener("keydown",function(e){if(e.key=="Escape")lbc()});
 $("gg").onclick=function(e){var d=e.target.closest(".del"),f=e.target.closest(".gi");if(!f)return;var g=GR.filter(function(x){return x.id==f.dataset.k})[0];if(!g)return;
 if(d){if(!d.dataset.s){d.dataset.s=1;d.textContent="Delete?";d.style.padding="0 12px";setTimeout(function(){d.dataset.s="";d.textContent="\u00d7";d.style.padding=""},3000);return}
 DB.collection("gallery").doc(g.id).delete().then(function(){return AS.delete(g.aid)}).catch(function(){});return}
-var u="/_blob/"+g.aid;$("lc").innerHTML=g.kind=="video"?'<video src="'+u+'" controls autoplay playsinline></video>':'<img src="'+u+'" alt="">';$("lb").hidden=false};
-(async function(){gdraw();try{AS=await claude.use("assets")}catch(e){}try{DB=await claude.use("db")}catch(e){}
+var u="https://glurrlyumcovgtkmwucu.supabase.co/storage/v1/object/public/media/"+g.aid;$("lc").innerHTML=g.kind=="video"?'<video src="'+u+'" controls autoplay playsinline></video>':'<img src="'+u+'" alt="">';$("lb").hidden=false};
+(async function(){gdraw();AS=window.SBAS;DB=window.SBDB;
 applyRole();
 if(DB)DB.collection("config").doc("site").onSnapshot(function(s){if(s.exists)SEED=true;draw()},function(){});
 if(DB)DB.collection("properties").onSnapshot(function(s){P=s.docs.map(function(d){var v=d.data();v.id=d.id;return v}).filter(function(v){return !v.deleted}).sort(function(a,b){return(b.ts||0)-(a.ts||0)});draw();adraw()},function(){});
@@ -79,14 +79,14 @@ var P=[],SEED=false,DX=null,ED=null,M=[],PI=0,PM=0,OK=["image/jpeg","image/png",
 function PL(){return P&&P.length?P:(SEED?[]:D)}
 function seed(){if(!SEED&&DB){SEED=true;DB.collection("config").doc("site").set({seeded:true}).catch(function(){})}}
 function loc(d){var a=String(d.a||"");return esc(a.indexOf(",")<0?a+", Lahore":a)}
-function thumb(m,c){return m?(m.k=="video"?'<video '+(c||"")+' src="/_blob/'+m.a+'#t=0.1" preload="metadata" muted playsinline></video>':'<img '+(c||"")+' src="/_blob/'+m.a+'" alt="" loading="lazy">'):""}
+function thumb(m,c){return m?(m.k=="video"?'<video '+(c||"")+' src="https://glurrlyumcovgtkmwucu.supabase.co/storage/v1/object/public/media/'+m.a+'#t=0.1" preload="metadata" muted playsinline></video>':'<img '+(c||"")+' src="https://glurrlyumcovgtkmwucu.supabase.co/storage/v1/object/public/media/'+m.a+'" alt="" loading="lazy">'):""}
 function draw(){var L=PL(),cs=["All"].concat(Array.from(new Set(L.map(function(d){return d.c}))));if(cs.indexOf(cat)<0)cat="All";
 $("tabs").innerHTML=cs.map(function(c){return'<button class="tab" data-c="'+esc(c)+'" aria-pressed="'+(c==cat)+'">'+(c=="All"?"All":esc(c)+"s")+'</button>'}).join("");
 $("grid").innerHTML=L.map(function(d,i){return[d,i]}).filter(function(x){return cat=="All"||x[0].c==cat}).map(function(x,j){var d=x[0],i=x[1],m=(d.m||[])[0],n=(d.m||[]).length,sp=(!m&&d.img)?'<img class="ph" src="'+d.img+'" alt="'+esc(d.t)+'" loading="lazy" onerror="this.remove()">':'';
 return'<article class="card" style="animation:rise .6s '+j*.08+'s both;cursor:pointer" data-i="'+i+'"><div class="pic'+((m||d.img)?' has':'')+'" style="background:linear-gradient(135deg,'+PAL[i%4]+')">'+(sp||thumb(m,'class="ph"'))+'<span class="tag">'+esc(d.f)+'</span>'+(n>1?'<span class="tag n">'+n+' media</span>':'')+'</div><div class="cb"><div class="pr">'+esc(d.p)+'</div><h3>'+esc(d.t)+'</h3><div class="lc">'+loc(d)+'</div>'+(d.d?'<p class="ds">'+esc(d.d)+'</p>':'')+'<div class="mt"><span>'+esc(d.z)+'</span>'+(d.b?'<span>'+d.b+' beds</span>':'<span>'+esc(d.c)+'</span>')+'</div><a class="inq" target="_blank" rel="noopener" href="https://wa.me/923234083930?text='+encodeURIComponent("Salam, I am interested in: "+d.t+", "+d.a)+'">Enquire now</a></div></article>'}).join("")||'<p style="color:var(--muted);grid-column:1/-1">No properties listed yet. Please check back soon.</p>'}
 $("tabs").onclick=function(e){var b=e.target.closest(".tab");if(b){cat=b.dataset.c;draw()}};
 $("grid").onclick=function(e){if(e.target.closest(".inq"))return;var c=e.target.closest(".card");if(c){PI=+c.dataset.i;PM=0;pdraw();$("pm").hidden=false}};
-function pdraw(){var d=PL()[PI];if(!d)return;var m=d.m||[],cur=m[PM],h='<div class="pmm">'+(cur?(cur.k=="video"?'<video src="/_blob/'+cur.a+'" controls playsinline></video>':'<img src="/_blob/'+cur.a+'" alt="">'):(d.img?'<img src="'+d.img+'" alt="">':'<div class="pmg" style="background:linear-gradient(135deg,'+PAL[PI%4]+')"></div>'))+(m.length>1?'<button class="pv" data-s="-1" aria-label="Previous">&#8249;</button><button class="pv nx" data-s="1" aria-label="Next">&#8250;</button>':'')+'</div>';
+function pdraw(){var d=PL()[PI];if(!d)return;var m=d.m||[],cur=m[PM],h='<div class="pmm">'+(cur?(cur.k=="video"?'<video src="https://glurrlyumcovgtkmwucu.supabase.co/storage/v1/object/public/media/'+cur.a+'" controls playsinline></video>':'<img src="https://glurrlyumcovgtkmwucu.supabase.co/storage/v1/object/public/media/'+cur.a+'" alt="">'):(d.img?'<img src="'+d.img+'" alt="">':'<div class="pmg" style="background:linear-gradient(135deg,'+PAL[PI%4]+')"></div>'))+(m.length>1?'<button class="pv" data-s="-1" aria-label="Previous">&#8249;</button><button class="pv nx" data-s="1" aria-label="Next">&#8250;</button>':'')+'</div>';
 if(m.length>1)h+='<div class="pth">'+m.map(function(x,k){return'<button data-k="'+k+'" aria-current="'+(k==PM)+'">'+thumb(x)+'</button>'}).join("")+'</div>';
 h+='<div class="pmi"><div class="pr">'+esc(d.p)+'</div><h3>'+esc(d.t)+'</h3><div class="lc">'+loc(d)+'</div><div class="mt" style="margin:14px 0"><span>'+esc(d.z)+'</span>'+(d.b?'<span>'+d.b+' beds</span>':'<span>'+esc(d.c)+'</span>')+'<span>'+esc(d.f)+'</span></div>'+(d.d?'<p style="white-space:pre-line;margin:0 0 16px">'+esc(d.d)+'</p>':'')+'<a class="btn" target="_blank" rel="noopener" href="https://wa.me/923234083930?text='+encodeURIComponent("Salam, I am interested in: "+d.t+", "+d.a)+'">Enquire Now</a></div>';
 $("pmc").innerHTML=h}
@@ -133,38 +133,29 @@ var TH=document.documentElement.getAttribute("data-theme")||"light";
 function setTh(t){TH=t;document.documentElement.setAttribute("data-theme",t);$("th").textContent=t=="dark"?"\u2600":"\u263E";try{localStorage.setItem("ae-theme",t)}catch(e){}}
 $("th").onclick=function(){setTh(TH=="dark"?"light":"dark")};setTh(TH);
 /* login and roles */
-var SS=null,AC=null,rmode=false,tt2;try{SS=JSON.parse(localStorage.getItem("ae-sess")||"null")}catch(e){}
+/* login and roles */
+var SS=null,tt2;
 function ISA(){return !!SS&&SS.r=="admin"}
 function tst(m){var t=$("tst");t.textContent=m;t.classList.add("o");clearTimeout(tt2);tt2=setTimeout(function(){t.classList.remove("o")},5000)}
 function applyRole(){$("up").hidden=!(ISA()&&AS);$("adb").textContent=ISA()?"Admin \u25BE":"Admin";if(!ISA()){$("ad").hidden=true;$("adm2").hidden=true}gdraw()}
-async function hs(pw,salt){var k=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveBits"]);var b=await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:salt,iterations:100000},k,256);return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,"0")}).join("")}
-function rs(){return Array.from(crypto.getRandomValues(new Uint8Array(16))).map(function(x){return x.toString(16).padStart(2,"0")}).join("")}
-function sb(h){return new Uint8Array(h.match(/../g).map(function(x){return parseInt(x,16)}))}
-function lui(){var f=!AC||rmode;$("lacw").hidden=!f;$("lapc").required=f;$("lapw").autocomplete=f?"new-password":"current-password";
-$("lal").textContent=!AC?"Choose admin password":rmode?"New admin password":"Admin password";
-$("lab").textContent=!AC?"Create admin password":rmode?"Reset password":"Sign in as admin";
-$("las").textContent=!AC?"First-time setup: choose an admin password. Only the page owner can create it.":rmode?"Reset: only the page owner can do this. Choose a new admin password.":"Full access: manage properties, photos and videos.";
-$("lfg").hidden=!AC;$("lfg").textContent=rmode?"Back to sign in":"Forgot password?"}
-async function acfg(){AC=null;if(DB){try{var s=await DB.collection("config").doc("admin").get();AC=s.exists?s.data():null}catch(e){}}lui()}
-function lopen(){rmode=false;$("lam").textContent="";$("lgn").hidden=false;acfg()}
-function login(){SS={r:"admin",n:"Admin",id:"admin"};try{localStorage.setItem("ae-sess",JSON.stringify(SS))}catch(e){}$("lgn").hidden=true;$("laf").reset();rmode=false;applyRole();tst(AS?"Welcome, admin. You have full access.":"Logged in as admin. To save changes, open this page from the owner account.")}
-$("lg").onclick=function(){if(SS){SS=null;try{localStorage.removeItem("ae-sess")}catch(e){}applyRole();tst("You are logged out.")}else lopen()};
+function setSess(s){SS=(s&&s.user&&s.user.id===ADMIN_UID)?{r:"admin",n:"Admin",id:"admin"}:null;applyRole()}
+SB.auth.getSession().then(function(r){setSess(r.data.session)});
+SB.auth.onAuthStateChange(function(_e,s){setSess(s)});
+$("lal").textContent="Admin password";$("lab").textContent="Sign in as admin";$("lfg").hidden=true;
+function lopen(){$("lam").textContent="";$("lgn").hidden=false}
+$("lg").onclick=function(){if(SS){SB.auth.signOut();tst("You are logged out.")}else lopen()};
 $("lgx").onclick=function(){$("lgn").hidden=true};
 addEventListener("keydown",function(e){if(e.key=="Escape"){$("lgn").hidden=true;$("adm2").hidden=true}});
-$("lfg").onclick=function(){rmode=!rmode;$("lam").textContent="";lui()};
 $("adb").onclick=function(){if(!ISA()){lopen();return}var m=$("adm2");m.hidden=!m.hidden;this.setAttribute("aria-expanded",!m.hidden)};
 $("mmg").onclick=function(){$("adm2").hidden=true;$("adm").click()};
 $("mlo").onclick=function(){$("adm2").hidden=true;$("lg").click()};
 document.addEventListener("click",function(e){if(!e.target.closest(".admw"))$("adm2").hidden=true});
-$("laf").onsubmit=async function(e){e.preventDefault();var M=$("lam");M.textContent="";
-if(!DB){M.textContent="Login service is not available. Reload the page and try again.";return}
-var pw=$("lapw").value;$("lab").disabled=true;
-try{await acfg();
-if(!AC||rmode){if(!AS){M.textContent=(rmode?"Resetting the password":"Creating the admin password")+" is only possible from the page owner's claude.ai account. Open this page in your own browser tab while signed in to claude.ai.";return}
-if(pw!=$("lapc").value){M.textContent="Passwords do not match.";return}
-var sl=rs();await DB.collection("config").doc("admin").set({s:sl,h:await hs(pw,sb(sl)),ts:Date.now()});login()}
-else{if(await hs(pw,sb(AC.s))!=AC.h){M.textContent="Wrong admin password.";return}login()}}
-catch(er){M.textContent="Something went wrong ("+((er&&er.code)||"error")+"). Try again."}finally{$("lab").disabled=false}};
+$("laf").onsubmit=async function(e){e.preventDefault();var M=$("lam");M.textContent="";$("lab").disabled=true;
+try{var r=await SB.auth.signInWithPassword({email:$("lem").value.trim(),password:$("lapw").value});
+if(r.error){M.textContent="Wrong email or password.";return}
+if(r.data.user.id!==ADMIN_UID){await SB.auth.signOut();M.textContent="This account is not the admin.";return}
+$("lgn").hidden=true;$("laf").reset();tst("Welcome, admin. You have full access.")}
+catch(er){M.textContent="Something went wrong. Try again."}finally{$("lab").disabled=false}};
 applyRole();
 /* hero quick search */
 $("qs").onsubmit=function(e){e.preventDefault();cat=$("qc").value;draw();$("properties").scrollIntoView({behavior:RM?"auto":"smooth"})};
